@@ -7,6 +7,10 @@ your job is to make the failing tests pass (red → green).
 The problems are ordered as an incremental ladder: start at `01` and climb. Each package is
 self-contained, so you can also jump around.
 
+> 💡 **Want to peek at my solutions?** This `main` branch is kept solution-free so you can
+> practice. My worked-out answers live on the [`solutions`](../../tree/solutions) branch —
+> switch to it only if you want to compare after giving a problem an honest try.
+
 ## The 10 problems
 
 | #   | Directory           | Concept                                  | What you implement                                                        |
