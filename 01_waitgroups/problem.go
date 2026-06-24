@@ -23,6 +23,7 @@ package waitgroups
 
 import (
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -46,5 +47,22 @@ func massage(s string) string {
 //   - Use a sync.WaitGroup to wait until all goroutines complete.
 //   - Return the results.
 func MassageStrings(inputs []string) []string {
-	panic("TODO: implement MassageStrings")
+	var wg sync.WaitGroup
+
+	results := make([]string, len(inputs))
+
+	for i := range inputs {
+		// wg.Add(1)
+		// go func() {
+		// 	defer wg.Done()
+		// 	results[i] = massage(inputs[i])
+		// }()
+
+		// using the simpler syntax
+		wg.Go(func() {
+			results[i] = massage(inputs[i])
+		})
+	}
+	wg.Wait()
+	return results
 }
