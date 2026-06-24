@@ -21,6 +21,8 @@
 //   - No data races — verify with: go test -race -v ./03_ratelimit/
 package ratelimit
 
+import "sync"
+
 // Row is a single unit of data to be written.
 type Row struct {
 	ID   int
@@ -37,5 +39,29 @@ type Row struct {
 //   - Capture the first error safely (guard the shared error variable with a sync.Mutex).
 //   - Return that error (or nil).
 func BatchWrite(rows []Row, maxConcurrent int, write func(Row) error) error {
-	panic("TODO: implement BatchWrite")
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, maxConcurrent)
+
+	var err error
+	var mu sync.Mutex
+
+	for _, row := range rows {
+		sem <- struct{}{}
+		wg.Go(func() {
+			defer func() { <-sem }()
+			e := write(row)
+			if e != nil {
+				mu.Lock()
+				if err == nil {
+					err = e
+				}
+				mu.Unlock()
+			}
+
+		})
+	}
+
+	wg.Wait()
+
+	return err
 }
