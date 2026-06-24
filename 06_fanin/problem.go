@@ -17,6 +17,8 @@
 //   - No data races — verify with: go test -race -v ./06_fanin/
 package fanin
 
+import "sync"
+
 // Merge fans in all input channels into a single output channel.
 //
 // TODO:
@@ -26,5 +28,21 @@ package fanin
 //   - Launch one more goroutine that calls wg.Wait() then close(out).
 //   - Return out.
 func Merge(channels ...<-chan int) <-chan int {
-	panic("TODO: implement Merge")
+	out := make(chan int)
+	var wg sync.WaitGroup
+
+	for _, channel := range channels {
+		wg.Go(func() {
+			for value := range channel {
+				out <- value
+			}
+		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
 }
