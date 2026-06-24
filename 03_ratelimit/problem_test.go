@@ -88,3 +88,16 @@ func TestBatchWritePropagatesError(t *testing.T) {
 		t.Fatal("expected a non-nil error when a write fails, got nil")
 	}
 }
+
+// TestBatchWriteConcurrentErrors makes every write fail so that multiple
+// goroutines record an error concurrently. If the shared error variable is
+// written without synchronization, `go test -race` flags a data race here.
+func TestBatchWriteConcurrentErrors(t *testing.T) {
+	rows := makeRows(50)
+	write := func(r Row) error {
+		return fmt.Errorf("write %d failed", r.ID)
+	}
+	if err := BatchWrite(rows, 8, write); err == nil {
+		t.Fatal("expected a non-nil error when every write fails, got nil")
+	}
+}
