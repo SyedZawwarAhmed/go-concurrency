@@ -54,6 +54,41 @@ func TestSafeCounterMultipleKeys(t *testing.T) {
 	}
 }
 
+// TestSafeCounterConcurrentReadWrite calls Value while Inc is still running.
+// This exercises the concurrent map read+write path that the other tests miss
+// (they only read after wg.Wait()). With the lock removed from Value, this test
+// trips the race detector and may panic with "concurrent map read and map write".
+func TestSafeCounterConcurrentReadWrite(t *testing.T) {
+	c := NewSafeCounter()
+	const n = 1000
+
+	var wg sync.WaitGroup
+
+	// Writers.
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			c.Inc("key")
+		}()
+	}
+
+	// Readers running concurrently with the writers.
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			_ = c.Value("key")
+		}()
+	}
+
+	wg.Wait()
+
+	if got := c.Value("key"); got != n {
+		t.Errorf("Value(key) = %d, want %d", got, n)
+	}
+}
+
 func TestSafeCounterUnknownKey(t *testing.T) {
 	c := NewSafeCounter()
 	if got := c.Value("never-incremented"); got != 0 {
