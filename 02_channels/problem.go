@@ -17,7 +17,10 @@
 //   - No data races — verify with: go test -race -v ./02_channels/
 package channels
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 // Result is what each worker reports back over the channel.
 type Result struct {
@@ -41,5 +44,30 @@ func fetchStatus(url string) int {
 //   - range over ch to populate and return the map.
 //   - Make sure the empty-input case returns an empty map without blocking.
 func CheckURLs(urls []string) map[string]int {
-	panic("TODO: implement CheckURLs")
+	var wg sync.WaitGroup
+
+	ch := make(chan Result)
+
+	for _, url := range urls {
+		wg.Go(func() {
+			result := Result{
+				URL:    url,
+				Status: fetchStatus(url),
+			}
+			ch <- result
+
+		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	result := make(map[string]int, len(urls))
+	for res := range ch {
+		result[res.URL] = res.Status
+	}
+
+	return result
 }
