@@ -32,12 +32,16 @@ func NewSafeCounter() *SafeCounter {
 //
 // TODO: lock c.mu, increment c.counts[key], unlock (defer is idiomatic).
 func (c *SafeCounter) Inc(key string) {
-	panic("TODO: implement SafeCounter.Inc")
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.counts[key]++
 }
 
 // Value returns the current count for key.
 //
 // TODO: lock c.mu, read c.counts[key], unlock, and return the value.
 func (c *SafeCounter) Value(key string) int {
-	panic("TODO: implement SafeCounter.Value")
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.counts[key]
 }
