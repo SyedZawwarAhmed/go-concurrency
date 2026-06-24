@@ -1,0 +1,24 @@
+# Compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries (go test -c) and coverage output
+*.test
+*.out
+coverage.*
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Dependency vendoring (not used here, but ignore if added)
+/vendor/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
