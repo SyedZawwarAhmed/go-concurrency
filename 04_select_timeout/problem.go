@@ -10,7 +10,7 @@
 //
 // REQUIREMENTS:
 //   - Use a SINGLE select statement with three cases:
-//       a value from primary, a value from replica, and <-time.After(timeout).
+//     a value from primary, a value from replica, and <-time.After(timeout).
 //   - Return the first value received, with a nil error.
 //   - On timeout, return "" and ErrTimeout.
 //
@@ -30,5 +30,12 @@ var ErrTimeout = errors.New("selecttimeout: both servers timed out")
 //
 // TODO: Implement with a single select over primary, replica, and time.After(timeout).
 func FetchResilient(primary, replica <-chan string, timeout time.Duration) (string, error) {
-	panic("TODO: implement FetchResilient")
+	select {
+	case msg1 := <-primary:
+		return msg1, nil
+	case msg2 := <-replica:
+		return msg2, nil
+	case <-time.After(timeout):
+		return "", ErrTimeout
+	}
 }
