@@ -7,7 +7,7 @@
 //
 // SCENARIO: Build three composable stages so that
 //
-//	Filter(Square(Generate(1, 2, 3, 4, 5, 6)), isEven)
+//	Filter(ctx, Square(ctx, Generate(ctx, 1, 2, 3, 4, 5, 6)), isEven)
 //
 // yields the even squares of 1..6, in order: 4, 16, 36.
 //
@@ -18,51 +18,63 @@
 //     output when done.
 //   - Return the output channel immediately (don't block the caller).
 //   - Order is preserved end to end.
+//   - Every send must also watch ctx.Done() so the stage unblocks and exits if
+//     the consumer abandons the pipeline (cancellation) — no goroutine leaks.
 //   - No data races — verify with: go test -race -v ./08_pipeline/
 package pipeline
 
+import "context"
+
 // Generate emits each of nums on the returned channel, in order, then closes it.
-//
-// TODO: make a chan int; in a goroutine send each num then close the channel; return it.
-func Generate(nums ...int) <-chan int {
+// It stops early if ctx is cancelled.
+func Generate(ctx context.Context, nums ...int) <-chan int {
 	ch := make(chan int)
 	go func() {
+		defer close(ch)
 		for _, num := range nums {
-			ch <- num
+			select {
+			case ch <- num:
+			case <-ctx.Done():
+				return
+			}
 		}
-		close(ch)
 	}()
 	return ch
 }
 
 // Square reads ints from in and emits their squares, preserving order.
-//
-// TODO: make a chan int; in a goroutine range over in, send v*v, then close; return it.
-func Square(in <-chan int) <-chan int {
+// It stops early if ctx is cancelled.
+func Square(ctx context.Context, in <-chan int) <-chan int {
 	ch := make(chan int)
 	go func() {
+		defer close(ch)
 		for v := range in {
-			ch <- v * v
+			select {
+			case ch <- v * v:
+			case <-ctx.Done():
+				return
+			}
 		}
-		close(ch)
 	}()
 	return ch
 }
 
 // Filter emits only the values from in for which pred returns true, in order.
-//
-// TODO: make a chan int; in a goroutine range over in, send v when pred(v) is true,
-// then close; return it.
-func Filter(in <-chan int, pred func(int) bool) <-chan int {
+// It stops early if ctx is cancelled.
+func Filter(ctx context.Context, in <-chan int, pred func(int) bool) <-chan int {
 	ch := make(chan int)
-
 	go func() {
+		defer close(ch)
 		for v := range in {
-			if pred(v) {
-				ch <- v
+			if !pred(v) {
+				continue
+			}
+			select {
+			case ch <- v:
+			case <-ctx.Done():
+				return
 			}
 		}
-		close(ch)
 	}()
 	return ch
 }
