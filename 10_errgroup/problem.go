@@ -20,7 +20,10 @@
 //   - No data races — verify with: go test -race -v ./10_errgroup/
 package errgroup
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // RunAll runs all tasks concurrently, cancelling the rest on the first error.
 //
@@ -31,5 +34,23 @@ import "context"
 //     error, use the Once to store it once and call cancel() to stop the others.
 //   - wg.Wait(), then return the stored error.
 func RunAll(ctx context.Context, tasks []func(context.Context) error) error {
-	panic("TODO: implement RunAll")
+	childCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	var wg sync.WaitGroup
+	var o sync.Once
+	var err error
+
+	for _, task := range tasks {
+		wg.Go(func() {
+			e := task(childCtx)
+			if e != nil {
+				o.Do(func() {
+					err = e
+					cancel()
+				})
+			}
+		})
+	}
+	wg.Wait()
+	return err
 }
