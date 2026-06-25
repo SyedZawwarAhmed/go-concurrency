@@ -25,14 +25,28 @@ package pipeline
 //
 // TODO: make a chan int; in a goroutine send each num then close the channel; return it.
 func Generate(nums ...int) <-chan int {
-	panic("TODO: implement Generate")
+	ch := make(chan int)
+	go func() {
+		for _, num := range nums {
+			ch <- num
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 // Square reads ints from in and emits their squares, preserving order.
 //
 // TODO: make a chan int; in a goroutine range over in, send v*v, then close; return it.
 func Square(in <-chan int) <-chan int {
-	panic("TODO: implement Square")
+	ch := make(chan int)
+	go func() {
+		for v := range in {
+			ch <- v * v
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 // Filter emits only the values from in for which pred returns true, in order.
@@ -40,5 +54,15 @@ func Square(in <-chan int) <-chan int {
 // TODO: make a chan int; in a goroutine range over in, send v when pred(v) is true,
 // then close; return it.
 func Filter(in <-chan int, pred func(int) bool) <-chan int {
-	panic("TODO: implement Filter")
+	ch := make(chan int)
+
+	go func() {
+		for v := range in {
+			if pred(v) {
+				ch <- v
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }
