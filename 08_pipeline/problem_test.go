@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"runtime"
 	"testing"
 	"time"
 )
@@ -65,5 +66,42 @@ func TestFullPipeline(t *testing.T) {
 	want := []int{4, 16, 36}
 	if !equalOrdered(got, want) {
 		t.Errorf("pipeline = %v, want %v", got, want)
+	}
+}
+
+// TestPipelineNoLeakOnAbandon proves the gap: if a consumer stops reading early
+// (the common real-world case — an error, a `break`, a cancelled request), the
+// pipeline must still tear down. With the current implementation each stage
+// blocks forever on `ch <- v`, leaking one goroutine per stage.
+//
+// We start a long pipeline, read exactly ONE value, then walk away. After a
+// settle period the goroutine count should return to baseline.
+func TestPipelineNoLeakOnAbandon(t *testing.T) {
+	isPositive := func(n int) bool { return n > 0 }
+
+	// Let goroutines from prior tests settle, then take a baseline.
+	time.Sleep(50 * time.Millisecond)
+	runtime.GC()
+	before := runtime.NumGoroutine()
+
+	// A pipeline with plenty of work still waiting to flow through.
+	nums := make([]int, 1000)
+	for i := range nums {
+		nums[i] = i + 1
+	}
+	out := Filter(Square(Generate(nums...)), isPositive)
+
+	// Consume a single value, then abandon the pipeline.
+	<-out
+
+	// Give leaked goroutines time to NOT exit (they're blocked on send).
+	time.Sleep(100 * time.Millisecond)
+	runtime.GC()
+	after := runtime.NumGoroutine()
+
+	if leaked := after - before; leaked > 0 {
+		t.Fatalf("pipeline leaked %d goroutine(s) after the consumer abandoned it "+
+			"(before=%d, after=%d); stages need to stop on cancellation",
+			leaked, before, after)
 	}
 }
