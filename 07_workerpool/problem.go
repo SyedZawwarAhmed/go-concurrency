@@ -18,6 +18,10 @@
 //   - No data races — verify with: go test -race -v ./07_workerpool/
 package workerpool
 
+import (
+	"sync"
+)
+
 // Process runs fn over all jobs using a pool of `workers` goroutines and returns
 // every result (in any order).
 //
@@ -30,5 +34,36 @@ package workerpool
 //   - A closer goroutine: wg.Wait() then close(resultsCh).
 //   - range resultsCh into a slice and return it.
 func Process(jobs []int, workers int, fn func(int) int) []int {
-	panic("TODO: implement Process")
+	var wg sync.WaitGroup
+
+	jobsCh := make(chan int, len(jobs))
+
+	for _, job := range jobs {
+		jobsCh <- job
+	}
+	close(jobsCh)
+
+	resultsCh := make(chan int, len(jobs))
+
+	wg.Add(workers)
+	for range workers {
+		go func() {
+			for j := range jobsCh {
+				resultsCh <- fn(j)
+			}
+			wg.Done()
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	result := make([]int, 0, len(jobs))
+	for res := range resultsCh {
+		result = append(result, res)
+	}
+
+	return result
 }
