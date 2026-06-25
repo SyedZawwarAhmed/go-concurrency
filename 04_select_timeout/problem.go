@@ -10,7 +10,7 @@
 //
 // REQUIREMENTS:
 //   - Use a SINGLE select statement with three cases:
-//       a value from primary, a value from replica, and <-time.After(timeout).
+//     a value from primary, a value from replica, and <-time.After(timeout).
 //   - Return the first value received, with a nil error.
 //   - On timeout, return "" and ErrTimeout.
 //
