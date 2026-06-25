@@ -29,10 +29,10 @@ const workDelay = 20 * time.Millisecond
 // TODO:
 //   - Loop forever.
 //   - Each iteration, select between two cases:
-//       * ctx.Done() fired       -> return the running count and ctx.Err().
-//       * a value arrives from work -> if the channel is closed (ok == false),
-//         return (count, nil); otherwise simulate processing (sleep workDelay)
-//         and increment the count.
+//   - ctx.Done() fired       -> return the running count and ctx.Err().
+//   - a value arrives from work -> if the channel is closed (ok == false),
+//     return (count, nil); otherwise simulate processing (sleep workDelay)
+//     and increment the count.
 func Worker(ctx context.Context, work <-chan int) (processed int, err error) {
 	panic("TODO: implement Worker")
 }

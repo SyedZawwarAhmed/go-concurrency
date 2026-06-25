@@ -1,0 +1,47 @@
+name: 🆕 New problem proposal
+description: Propose a new concurrency problem for the course.
+title: "[Problem] <concept> — short description"
+labels: ["new-problem"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a problem! A good problem teaches **one** distinct concept
+        that isn't already covered and fits the incremental difficulty ladder.
+        See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) for the build workflow.
+  - type: input
+    id: concept
+    attributes:
+      label: Concept
+      description: The single Go concurrency idea this teaches.
+      placeholder: "e.g. sync.Cond, sync.Pool, atomic.Value, bounded fan-out + fan-in"
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: A concrete, realistic framing of the task the learner implements.
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements / contract
+      description: The bulleted contract the implementation must satisfy (ordering, no leaks, no races, edge cases…).
+    validations:
+      required: true
+  - type: input
+    id: placement
+    attributes:
+      label: Where does it fit on the ladder?
+      description: Which number, and why there?
+      placeholder: "e.g. after 07_workerpool, before 08_pipeline"
+  - type: checkboxes
+    id: not-covered
+    attributes:
+      label: Confirm
+      options:
+        - label: I checked the existing problems and this concept isn't already covered.
+          required: true
+        - label: I'm willing to also provide a reference solution for the `solutions` branch.

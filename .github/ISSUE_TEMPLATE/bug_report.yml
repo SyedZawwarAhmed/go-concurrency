@@ -1,0 +1,46 @@
+name: 🐛 Bug report
+description: A flaky test, a race the suite misses, or an incorrect problem statement.
+title: "[Bug] NN_topic — short summary"
+labels: ["bug"]
+body:
+  - type: input
+    id: problem
+    attributes:
+      label: Which problem?
+      placeholder: "e.g. 10_errgroup"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of bug
+      options:
+        - Flaky / non-deterministic test
+        - Test passes despite a real concurrency bug
+        - Incorrect or misleading problem statement
+        - Test doesn't compile / build error
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Command + output
+      description: Include the exact command (with `-race`) and the full output.
+      render: shell
+      placeholder: |
+        $ go test -race -v ./NN_topic/
+        ...
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Go version & OS
+      placeholder: "go version go1.25 darwin/arm64"
