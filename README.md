@@ -62,4 +62,15 @@ it's green, then move to the next number.
   fails after ~2s with a clear message instead of hanging forever.
 - Timing tests (e.g. `01`, `10`) assert that work actually happens _concurrently_, not serially.
 
+## Contributing
+
+Contributions are very welcome — new problems, sharper test cases, clearer problem
+statements, and bug reports all add value. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for
+the conventions and workflow (note the two-branch model: skeletons + tests live on
+`main`, working solutions on `solutions`). A copy-pasteable starting point for new
+problems is in [`_template/`](_template/).
+
+This project is released under the [MIT License](LICENSE) and follows a
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
 Happy hacking. 🐹

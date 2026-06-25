@@ -1,0 +1,31 @@
+name: ✅ Test improvement
+description: Suggest a stronger or additional test case for an existing problem.
+title: "[Tests] NN_topic — what it should catch"
+labels: ["tests"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Sharper tests are the highest-leverage contribution. They should be **green
+        against a correct solution** and **red against the `main` skeleton**.
+  - type: input
+    id: problem
+    attributes:
+      label: Which problem?
+      placeholder: "e.g. 03_ratelimit"
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: What does the current suite miss?
+      description: What bug class slips through today? (a race, a goroutine leak, a deadlock, an off-by-one in ordering, a missing edge case…)
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed test
+      description: Sketch the test (timing bound, leak check, watchdog, table case…). Pseudocode or Go is fine.
+    validations:
+      required: true

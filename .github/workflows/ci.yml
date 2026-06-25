@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, solutions]
+  pull_request:
+    branches: [main, solutions]
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs on every branch/PR. The `main` branch is intentionally solution-free —
+  # its skeletons panic with "TODO", so we do NOT run the tests here. We only
+  # prove the code is formatted, vets clean, and compiles.
+  static:
+    name: format / vet / build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          check-latest: true
+
+      - name: Check formatting (gofmt)
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::These files are not gofmt-formatted:"
+            echo "$unformatted"
+            echo "Run 'gofmt -w .' and commit the result."
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Build (skeletons must compile)
+        run: go build ./...
+
+  # The solutions branch is fully implemented, so the whole suite must pass
+  # with the race detector on. This job only runs on the solutions branch.
+  test:
+    name: test -race (solutions only)
+    if: github.ref == 'refs/heads/solutions' || github.base_ref == 'solutions'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          check-latest: true
+
+      - name: go test -race
+        run: go test -race -v ./...
