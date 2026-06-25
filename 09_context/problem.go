@@ -34,5 +34,18 @@ const workDelay = 20 * time.Millisecond
 //     return (count, nil); otherwise simulate processing (sleep workDelay)
 //     and increment the count.
 func Worker(ctx context.Context, work <-chan int) (processed int, err error) {
-	panic("TODO: implement Worker")
+	count := 0
+	for {
+		select {
+		case <-ctx.Done():
+			return count, ctx.Err()
+		case _, ok := <-work:
+			if ok == false {
+				return count, nil
+			} else {
+				time.Sleep(workDelay)
+				count++
+			}
+		}
+	}
 }
